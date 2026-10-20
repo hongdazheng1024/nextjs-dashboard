@@ -16,6 +16,8 @@ export type State = {
     status?: string[];
   };
   message?: string | null;
+  success?: boolean;
+  invoiceStatus?: "pending" | "paid";
 };
 
 const FormSchema = z.object({
@@ -36,7 +38,10 @@ const CreateInvoice = FormSchema.omit({ id: true, date: true });
 
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 
-export async function createInvoice(prevState: State, formData: FormData) {
+export async function createInvoice(
+  prevState: State,
+  formData: FormData,
+): Promise<State> {
   const validatedFields = CreateInvoice.safeParse({
     customerId: formData.get("customerId"),
     amount: formData.get("amount"),
@@ -73,7 +78,7 @@ export async function updateInvoice(
   id: string,
   prevState: State,
   formData: FormData,
-) {
+): Promise<State> {
   const validatedFields = CreateInvoice.safeParse({
     customerId: formData.get("customerId"),
     amount: formData.get("amount"),
@@ -103,7 +108,8 @@ export async function updateInvoice(
   }
 
   revalidatePath("/dashboard/invoices");
-  redirect("/dashboard/invoices");
+  // redirect("/dashboard/invoices");
+  return { success: true, invoiceStatus: status };
 }
 
 export async function deleteInvoice(id: string) {

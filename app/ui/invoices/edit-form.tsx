@@ -10,7 +10,9 @@ import {
 import Link from "next/link";
 import { Button } from "@/app/ui/button";
 import { updateInvoice, State } from "@/app/lib/actions";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { sendGTMEvent } from "@next/third-parties/google";
 
 export default function EditInvoiceForm({
   invoice,
@@ -22,6 +24,21 @@ export default function EditInvoiceForm({
   const initialState: State = { message: null, errors: {} };
   const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
   const [state, formAction] = useActionState(updateInvoiceWithId, initialState);
+
+  const router = useRouter();
+  useEffect(() => {
+    if (state.success) {
+      console.log("Invoice updated successfully. Sending GTM event...");
+      sendGTMEvent({
+        event: "invoice_update",
+        invoice_status: state.invoiceStatus, // "pending" | "paid"
+      });
+      console.log(
+        "Invoice updated successfully. Redirecting to invoices page...",
+      );
+      router.push("/dashboard/invoices");
+    }
+  }, [state.success, state.invoiceStatus, router]);
 
   return (
     <form action={formAction}>
